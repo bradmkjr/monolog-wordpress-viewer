@@ -6,11 +6,15 @@ Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 Description: Monolog WordPress Log Viewer Plugin
 Author: Bradford Knowlton
 Author URI: http://bradknowlton.com/
-Version: 1.0.2
+Version: 1.0.3
 GitHub Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 GitHub Branch: master
 
 */
+
+if(!class_exists('WP_List_Table')){
+	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+}
 
 if(!class_exists('WP_Log_List_Table')){
 	include_once plugin_dir_path( __FILE__ ) . 'includes/wp-log-list-table.inc.php';
@@ -22,8 +26,8 @@ add_action('admin_menu', 'wp_add_pages');
 // action function for above hook
 function wp_add_pages() {
 	// Add a new submenu under Tools:
-	$log_hook = add_management_page('Log Viewer', __('Log Viewer','wp_log_viewer'), __('Log Viewer','wp_log_viewer'), 'manage_options', 'log-viewer', 'wp_log_viewer');
-	add_action( "load-$log_hook", 'add_log_options' );
+	// add_management_page( $page_title, $menu_title, $capability, $menu_slug, $function );
+	$log_hook = add_management_page( __('Log Viewer','wp_log_viewer'), __('Log Viewer','wp_log_viewer'), 'manage_options', 'log-viewer', 'wp_log_viewer');
 }
 
 function add_log_options() {
