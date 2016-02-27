@@ -6,7 +6,7 @@ Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 Description: Monolog WordPress Log Viewer Plugin
 Author: Bradford Knowlton
 Author URI: http://bradknowlton.com/
-Version: 1.0.3
+Version: 1.0.4
 GitHub Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 GitHub Branch: master
 
@@ -28,6 +28,8 @@ function wp_add_pages() {
 	// Add a new submenu under Tools:
 	// add_management_page( $page_title, $menu_title, $capability, $menu_slug, $function );
 	$log_hook = add_management_page( __('Log Viewer','wp_log_viewer'), __('Log Viewer','wp_log_viewer'), 'manage_options', 'log-viewer', 'wp_log_viewer');
+	
+	add_action( "load-$log_hook", 'add_log_options' );
 }
 
 function add_log_options() {
@@ -50,7 +52,7 @@ function wp_log_viewer() {
 	global $logListTable;
 	//Fetch, prepare, sort, and filter our data...
 	$logListTable->prepare_items();
-?>
+	?>
     <div class="wrap">
     	<?php echo "<h2>" . __( 'WordPress Log', 'menu-test' ) . "</h2>"; ?>
     	<?php
@@ -73,8 +75,8 @@ function wp_log_viewer() {
 	if ( $messages )
 		echo '<div id="message" class="updated"><p>' . join( ' ', $messages ) . '</p></div>';
 	unset( $messages );
-?>
-<?php $logListTable->views(); ?>
+	?>
+	<?php $logListTable->views(); ?>
 
    		 <!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
         <form id="log-filter" method="get">
@@ -90,6 +92,7 @@ function wp_log_viewer() {
     </div>
     <?php
 }
+
 
 if( ! function_exists( 'ago' )){
 	
