@@ -6,7 +6,7 @@ Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 Description: Monolog WordPress Log Viewer Plugin
 Author: Bradford Knowlton
 Author URI: http://bradknowlton.com/
-Version: 1.0.4
+Version: 1.0.5
 GitHub Plugin URI: https://github.com/bradmkjr/wp-log-viewer
 GitHub Branch: master
 
