@@ -13,7 +13,7 @@ GitHub Branch: master
 */
 
 if(!class_exists('WP_Log_List_Table')){
-	include_once plugin_dir_path( __FILE__ ) . 'includes/wp-log-list-table.php';
+	include_once plugin_dir_path( __FILE__ ) . 'includes/wp-log-list-table.inc.php';
 }
 
 
