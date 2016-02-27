@@ -1,10 +1,10 @@
 {
-	"name": "bradmkjr/wp-log-viewer",
+	"name": "bradmkjr/monolog-wordpress-viewer",
     "description": "WordPress Plugin for viewing monolog-wordpress log entries",
     "keywords": ["wordpress", "log", "logging", "monolog", "mysql", "database"],
-    "homepage": "https://github.com/bradmkjr/wp-log-viewer",
+    "homepage": "https://github.com/bradmkjr/monolog-wordpress-viewer",
     "license": "MIT",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "authors": [
         {
             "name": "Bradford Knowlton",

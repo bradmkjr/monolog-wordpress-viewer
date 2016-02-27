@@ -1,13 +1,13 @@
 <?php
 
 /*
-Plugin Name: WP Log Viewer
-Plugin URI: https://github.com/bradmkjr/wp-log-viewer
-Description: Monolog WordPress Log Viewer Plugin
+Plugin Name: Monolog WordPress Viewer
+Plugin URI: https://github.com/bradmkjr/monolog-wordpress-viewer
+Description: Monolog WordPress Viewer Plugin
 Author: Bradford Knowlton
 Author URI: http://bradknowlton.com/
-Version: 1.0.5
-GitHub Plugin URI: https://github.com/bradmkjr/wp-log-viewer
+Version: 1.0.6
+GitHub Plugin URI: https://github.com/bradmkjr/monolog-wordpress-viewer
 GitHub Branch: master
 
 */
