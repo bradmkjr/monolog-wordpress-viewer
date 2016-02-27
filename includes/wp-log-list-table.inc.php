@@ -48,35 +48,35 @@ class WP_Log_List_Table extends WP_List_Table {
             'ajax'      => false        //does this table support ajax?
         ) );
         
-        // selway-store_page_activity-log
-        add_filter('views_wordpress-log', array($this, 'my_post_views') );
+        // selway-store_page_log-viewer
+        // tools_page_log-viewer
+        add_filter('views_tools_page_log-viewer', array($this, 'my_post_views') );
+        
         
     }
     
     function my_post_views( $views ){
-    	global $wpdb;
-		
-		// SELECT distinct_logs.action, count( 1 ) AS ct FROM ( SELECT action FROM wp_selway_log ) AS distinct_logs GROUP BY distinct_logs.action
-		 $sql_results = $wpdb->get_results( $wpdb->prepare( "SELECT distinct_logs.action, count( 1 ) AS count FROM ( SELECT action FROM `".$wpdb->prefix."log` WHERE deleted = 0 ) AS distinct_logs GROUP BY distinct_logs.action ORDER BY `action`", 
-	        array(
-				md5($this->site_url)
-			) 
-		) );
-		
-		$views = array();
-		
-		// loop through all requests to build possible array		
-		foreach($sql_results as $row){
-			    // $product_ids[] = $row->product_id;
-			    
-			   	$action = strtolower(str_replace(' ','-',$row->action));	 
-			   	$url_action = urlencode($action);   
-			   	
-			   	$views[$action] = '<a href="admin.php?page=activity-log&amp;log_action='.$url_action.'" class="'.(($_REQUEST['log_action'] == $action)?'current':'').'">'.$row->action.' <span class="count">('.$row->count.')</span></a>';
-		}
-	    
-	    return $views;
-	}
+        global $wpdb;
+        
+        // SELECT distinct_logs.action, count( 1 ) AS ct FROM ( SELECT action FROM wp_selway_log ) AS distinct_logs GROUP BY distinct_logs.action
+         $sql_results = $wpdb->get_results( "SELECT distinct_logs.channel, count( 1 ) AS count FROM ( SELECT channel FROM `".$wpdb->prefix."log` WHERE 1 ) AS distinct_logs GROUP BY distinct_logs.channel ORDER BY `channel`" );
+        
+        $views = array();
+        
+        // loop through all requests to build possible array        
+        foreach($sql_results as $row){
+                // $product_ids[] = $row->product_id;
+                
+                $channel = strtolower(str_replace(' ','-',$row->channel));   
+                $url_action = urlencode($channel);   
+                
+                $views[$channel] = '<a href="admin.php?page=log-viewer&amp;channel='.$url_action.'" class="'.
+                (( isset($_REQUEST['channel']) && $_REQUEST['channel'] == $channel)?'current':'').
+                '">'.$row->channel.' <span class="count">('.$row->count.')</span></a>';
+        }
+        
+        return $views;
+    }
     /** ************************************************************************
      * Recommended. This method is called when the parent class can't find a method
      * specifically build for a given column. Generally, it's recommended to include
@@ -105,11 +105,14 @@ class WP_Log_List_Table extends WP_List_Table {
             case 'id':
             case 'action':
             case 'message':
+            case 'channel':
                 return $item[$column_name];
             case 'user':
-            	return get_display_name($item[$column_name]);    
-            case 'date':
-            	return ago($item['timestamp']);
+                return get_display_name($item[$column_name]);    
+            case 'time':
+                return ago($item['time']);
+            case 'level':
+                return $item['level'];
             default:
                 return print_r($item,true); //Show the whole array for troubleshooting purposes
         }
@@ -181,10 +184,10 @@ class WP_Log_List_Table extends WP_List_Table {
            // 'rating'    => 'Rating',
            // 'director'  => 'Director'
            'id' => 'ID',
-           'user' => 'User',
-           'action' => 'Action',
+           'channel' => 'Channel',
+           'level' => 'Level',
            'message' => 'Message',
-           'date' => 'Date',
+           'time' => 'Time',
         );
         return $columns;
     }
@@ -208,10 +211,10 @@ class WP_Log_List_Table extends WP_List_Table {
             // 'rating'    => array('rating',false),
             // 'director'  => array('director',false)
            'id' => array('id', false),
-           'user' => array('user', false),
-           'action' => array('action', false),
+           'channel' => array('channel', false),
+           'level' => array('level', false),
            'message' => array('message', false),
-           'date' => array('timestamp',false),
+           'time' => array('time',false),
         );
         return $sortable_columns;
     }
@@ -247,32 +250,32 @@ class WP_Log_List_Table extends WP_List_Table {
           global $bulk_counts;
           
           $bulk_counts = array(
-			'updated' => 0,
-			'locked' => 0,
-			'deleted' => 0,
-			'trashed' => 0,
-			'untrashed' => 0,
-			);
+            'updated' => 0,
+            'locked' => 0,
+            'deleted' => 0,
+            'trashed' => 0,
+            'untrashed' => 0,
+            );
           
         //Detect when a bulk action is being triggered...
         if( 'delete'===$this->current_action() ) {
             // wp_die('Items deleted (or they would be if we had items to delete)!');
             
             if(isset($_GET['log'])){
-            	foreach($_GET['log'] as $log){
-	        	      $results = $wpdb->update( 
-						$wpdb->prefix.'selway_log', 
-						array( 
-							'deleted' => '1'	// integer (number) 
-						), 
-						array( 'id' => $log ), 
-						array( '%d'	), 
-						array( '%d' ) 
-					);	 
-					if( $results ){
-						$bulk_counts['deleted'] += $results;
-					}
-				} // end foreach    
+                foreach($_GET['log'] as $log){
+                      $results = $wpdb->update( 
+                        $wpdb->prefix.'log', 
+                        array( 
+                            'deleted' => '1'    // integer (number) 
+                        ), 
+                        array( 'id' => $log ), 
+                        array( '%d' ), 
+                        array( '%d' ) 
+                    );   
+                    if( $results ){
+                        $bulk_counts['deleted'] += $results;
+                    }
+                } // end foreach    
             } // end if
             
            // echo $count;
@@ -281,38 +284,37 @@ class WP_Log_List_Table extends WP_List_Table {
     }
     
     function load_data(){
-	    
-	    global $wpdb;
-	    
-	    $sql_results = $wpdb->get_results( $wpdb->prepare( "SELECT *, UNIX_TIMESTAMP(`timestamp`) as unix_timestamp FROM `".$wpdb->prefix."selway_log` WHERE 1 AND `deleted` = 0 ORDER BY id DESC", 
-	        array(
-				md5($this->site_url)
-			) 
-		) );
-		
-		// var_dump($sql_results);
-		
-		$data = array();
-		// loop through all requests to build possible array		
-		foreach($sql_results as $row){
-			    // $product_ids[] = $row->product_id;
-			    
-			    if( isset($_REQUEST['log_action']) && "" != $_REQUEST['log_action'] && $_REQUEST['log_action'] != strtolower(str_replace(' ','-',$row->action))  ){
-				    continue;
-			    }
-			    
-			    $entry['id'] = $row->id;
-			    $entry['user'] = $row->user;
-			   	$entry['action'] = $row->action;
-			   	$entry['message'] = $row->message;
-			   	$entry['timestamp'] = $row->unix_timestamp;
-			   	
-			   	$data[] = $entry;		    
-		}
-	    
-	    // var_dump($data);
-	    
-	    return $data;
+        
+        global $wpdb;
+        
+        $sql_results = $wpdb->get_results( "SELECT * FROM `".$wpdb->prefix."log` WHERE 1 ORDER BY id DESC" );
+        
+        
+        $data = array();
+        // loop through all requests to build possible array        
+        foreach($sql_results as $row){
+                // $product_ids[] = $row->product_id;
+                
+                if( isset($_REQUEST['log_action']) && "" != $_REQUEST['log_action'] && $_REQUEST['log_action'] != strtolower(str_replace(' ','-',$row->action))  ){
+                    continue;
+                }
+                
+                $entry['id'] = $row->id;
+                // $entry['user'] = $row->user;
+                // $entry['action'] = $row->action;
+                // $entry['message'] = $row->message;
+                // $entry['timestamp'] = $row->unix_timestamp;
+                $entry['channel'] = $row->channel;
+                $entry['level'] = $row->level;
+                $entry['message'] = $row->message;
+                $entry['time'] = $row->time;
+                
+                $data[] = $entry;           
+        }
+        
+        // var_dump($data);
+        
+        return $data;
     }
     /** ************************************************************************
      * REQUIRED! This is where you prepare your data for display. This method will
@@ -395,16 +397,16 @@ class WP_Log_List_Table extends WP_List_Table {
             $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; //If no order, default to asc
             
             if( is_numeric($a[$orderby]) && is_numeric($b[$orderby]) ){
-	        	$result = bccomp($a[$orderby], $b[$orderby]); //Determine sort order    
+                $result = bccomp($a[$orderby], $b[$orderby]); //Determine sort order    
             }else{
-	            $result = strcmp($a[$orderby], $b[$orderby]); //Determine sort order    
+                $result = strcmp($a[$orderby], $b[$orderby]); //Determine sort order    
             }
             
             
             return ($order==='asc') ? $result : -$result; //Send final sort direction to usort
         }
         if( isset($_REQUEST['orderby']) ){
-	    	usort($data, 'usort_reorder');    
+            usort($data, 'usort_reorder');    
         }
         
         
@@ -467,7 +469,7 @@ class WP_Log_List_Table extends WP_List_Table {
     
 /*
     public function views() {
-    	echo $this->screen->id;
+        echo $this->screen->id;
     }
 */
 }
